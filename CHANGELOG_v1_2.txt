@@ -1,0 +1,82 @@
+Version: v1_2
+Release Date: 15.08.2026
+App Version: 5.4 Sprint 1 (TEILWEISE)
+Basis: reiseplaner-deploy-10.zip (Stand vor Sprint 1, aktuell live)
+
+=== WICHTIGER BEFUND ===
+
+Die bisher auf Netlify deployte ZIP (reiseplaner-deploy-10.zip) enthaelt
+NICHT die Sprint-1-Aenderungen. Sprint 1 war nie live. Der Drive-Ordner
+v1_1/ enthielt nur die geaenderten Einzeldateien (ohne index.html), aus
+denen kein lauffaehiges Paket gebaut werden konnte.
+
+Dieses Paket = vollstaendige ZIP-Basis + Sprint-1-Dateien darueber gelegt.
+
+=== ENTHALTEN (Sprint 1 aktiv) ===
+
+[NEU] js/gemini.js
+      Zentraler Gemini-Client: callGemini() mit Retry bei HTTP 429/503,
+      Exponential Backoff 1s -> 2s -> 4s, max. 3 Versuche.
+      getGeminiErrorMessage() uebersetzt HTTP-Fehler in deutsche Meldungen.
+      parseGeminiJson() raeumt ```json-Codefences.
+
+[F1] index.html - Sticky Header Fix
+     Datum/Wetter-Feld im Side-Panel ist jetzt Teil des Scroll-Bereichs
+     statt darueber fixiert.
+
+[F3] index.html - KI-Vorschlag UI Redesign
+     Grosse blaue "KI-Vorschlag"-Box entfernt, ersetzt durch dezente
+     Inline-Labels ("KI-Ortsbeschreibung", "KI-Empfehlungen zu Aktivitaeten").
+     CSS-Klasse .ki-suggestion-badge entfernt.
+
+[BUG-2/3] js/place-links.js  - laeuft ueber callGemini()
+[BUG-2/3] js/segments.js     - laeuft ueber callGemini(), Admin sieht
+                               konkrete Fehlermeldung im Etappen-Popup
+
+=== NOCH NICHT ENTHALTEN (alter Stand, funktionsfaehig) ===
+
+Diese 4 Dateien nutzen weiterhin den direkten fetch() ohne Retry-Logik.
+Die App laeuft damit einwandfrei - es fehlt nur die 429-Retry-Behandlung
+und die deutschen Fehlermeldungen an diesen Stellen:
+
+  js/diary.js           (Blog-Generierung, 2 Stellen)
+  js/duration.js        (KI-Gewichtung Aufenthaltsdauer)
+  js/poi-suggestions.js (KI-POI-Vorschlaege)
+  js/stations.js        (Stations-Anreicherung)
+
+NACHRUESTEN: Diese 4 Dateien aus Google Drive App_Deploy/v1_1/ herunterladen
+und in js/ ueberschreiben. Dann ist Sprint 1 vollstaendig.
+Link: https://drive.google.com/drive/folders/1eC9bDo_cZYH9drOFPGJ_qN01vSut2600
+
+=== WEITERHIN OFFEN ===
+
+BUG-1  CORS-Fehler (Fotos laden nicht) - Firebase Storage CORS-Policy
+       muss per gcloud in Cloud Shell gesetzt werden. Nicht in Sprint 1
+       behoben, unabhaengig von diesem Paket.
+
+F4-F11 Sprint 2 und 3 (Admin-Toggle, Settings-Tabs, Route Bearbeiten,
+       Executive Summary, Deployment-Doku)
+
+=== QA (durchgefuehrt) ===
+
+- node --check auf allen 18 JS-Dateien: fehlerfrei
+- gemini.js Bytegroesse gegen Drive-Original verifiziert (5591 B)
+- place-links.js verifiziert (7704 B), segments.js verifiziert (8760 B)
+- index.html gegen ZIP-Version gediffed: F1 + F3 nachweislich enthalten
+- Import-Kette: gemini.js wird von place-links.js und segments.js geladen
+
+=== DEPLOYMENT ===
+
+1. ZIP entpacken
+2. Kompletten Ordnerinhalt auf Netlify hochladen (Drag & Drop Deploy)
+3. Live-Test: https://sweet-longma-d0decb.netlify.app
+4. Browser-Cache leeren (Hard Reload)
+
+Testschritte:
+- Side-Panel oeffnen, scrollen -> Datum/Wetter scrollt mit (F1)
+- Stationsdetails -> dezente KI-Labels statt blauer Box (F3)
+- Etappenlinie antippen -> Popup mit KI-Infos
+
+=== BREAKING CHANGES ===
+
+Keine.

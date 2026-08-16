@@ -1,0 +1,73 @@
+Version: v1_4
+Release Date: 15.08.2026
+App Version: 5.5 Sprint 2 (Teil 2: Onboarding, ausserhalb des urspruenglichen
+              Backlogs auf CEO-Wunsch direkt umgesetzt)
+Basis: reiseplaner-v1_3.zip (F4 Preview-Toggle + F5 Route-Bearbeiten-Button)
+
+=== NEUES FEATURE: Onboarding fuer neue Nutzer ===
+
+Ausgangslage: Familienmitglieder, die die App zum ersten Mal oeffnen,
+sehen vor allem die grossen Header-Buttons (Galerie, Tagebuch) - die
+eigentlichen Staerken der App (Karte mit allen Stationen, Fotos direkt
+auf der Karte beim Reinzoomen, Wetter/Datum pro Station, Ein-/Ausblenden
+von Kartenebenen) sind nicht selbsterklaerend.
+
+Loesung: Bildlastiges Einfuehrungs-Overlay mit 6 kurzen Kaertchen (Icon +
+1-2 Saetze, kein Fliesstext), das beim allerersten App-Start automatisch
+erscheint:
+
+  1. Willkommen (Kurzueberblick)
+  2. Karte & Stationen
+  3. Fotos direkt auf der Karte (Reinzoomen)
+  4. Datum & Wetter
+  5. Ebenen ein-/ausblenden
+  6. Tagebuch & Galerie (bewusst als letzter, kurzer Slide - nicht als
+     Hauptfokus, da im Header schon selbsterklaerend)
+
+Bedienung:
+  - Weiter/Zurueck-Buttons, Punkte-Anzeige fuer Fortschritt
+  - X oben rechts schliesst jederzeit
+  - ESC-Taste und Klick auf abgedunkelten Hintergrund schliessen ebenfalls
+    (konsistent mit allen anderen Modals der App)
+  - Merkt sich "gesehen" pro Geraet (localStorage), erscheint dann nicht
+    mehr automatisch
+
+Wiederaufruf: Neuer Info-Button (i-Symbol) unten links auf der Karte,
+funktioniert unabhaengig vom "schon gesehen"-Status jederzeit.
+
+=== NEUE/GEAENDERTE DATEIEN ===
+
+- js/onboarding.js  (NEU - Slide-Logik, Inhalte, Persistenz)
+- js/main.js        (Import + Aufruf beim Start, ESC-/Hintergrund-Klick-
+                      Handler erweitert)
+- index.html         (Info-Button auf der Karte, Overlay-Markup)
+
+=== QA CHECKLIST ===
+
+[x] node --check auf allen 19 JS-Dateien - fehlerfrei
+[x] HTML Tag-Balance geprueft (div/button/header) - balanciert
+[x] window.openOnboarding/closeOnboarding/onboardingNext/onboardingPrev
+    korrekt registriert und in main.js verdrahtet
+[x] Modul-Ladereihenfolge geprueft: onboarding.js wird vor dem ersten
+    moeglichen Aufruf von window.closeOnboarding importiert
+
+=== MANUELLE TESTSCHRITTE (nach Deploy) ===
+
+1. Browser-localStorage fuer die Seite leeren (oder privates/Inkognito-
+   Fenster) -> App oeffnen -> Onboarding-Overlay sollte nach ca. 0,5s
+   automatisch erscheinen, Karte im Hintergrund bereits sichtbar
+2. Durch alle 6 Kaertchen klicken (Weiter), letzter Button heisst
+   "Los geht's!" statt "Weiter"
+3. Zurueck-Button auf Slide 1 sollte unsichtbar/inaktiv sein
+4. X oben rechts -> Overlay schliesst, erneuter App-Start (Reload) ->
+   Overlay erscheint NICHT mehr automatisch
+5. Auf das i-Symbol unten links auf der Karte tippen -> Overlay erscheint
+   erneut, unabhaengig vom vorherigen Schliessen
+6. ESC-Taste und Klick auf den abgedunkelten Hintergrund schliessen das
+   Overlay ebenfalls
+
+=== WEITERHIN OFFEN ===
+
+BUG-1  CORS-Fehler - unveraendert offen
+F6-F8  Sprint 2 Rest (Marker-Schwellenwert, Settings-Tabs, KI-Trigger-Doku)
+F9-F11 Sprint 3

@@ -1,0 +1,99 @@
+Version: v1_6
+Release Date: 16.08.2026
+App Version: 5.6 (Reise-Auswahl vor Passwortabfrage + generisches Branding)
+Basis: reiseplaner-v1_5.zip
+
+=== FEATURE/FIX: Reise-Auswahlbildschirm vor Passwortabfrage ===
+
+Ausgangslage (von CEO gemeldet): Beim Öffnen der App auf einem Gerät, das
+noch keine aktive Reise gespeichert hat, fragte die App sofort das Passwort
+der ersten (migrierten) Reise ab - unabhaengig davon, ob der Nutzer diese
+Reise ueberhaupt oeffnen wollte oder gerade eine NEUE Reise anlegen wollte.
+
+Root Cause (per Code-Audit verifiziert, nicht aus dem Gedaechtnis
+rekonstruiert): initSystem() in firebase.js wies beim allerersten Laden
+automatisch die erste existierende Reise (S.trips[0]) als aktive Reise zu
+und zeigte danach direkt den Sperrbildschirm dafuer. Es gab keine
+Benutzeroberflaeche, die VOR dieser automatischen Zuweisung eine bewusste
+Auswahl ermoeglichte - obwohl die komplette "Neue Reise anlegen"-Funktion
+(new-trip-modal, createTrip()) bereits vollstaendig implementiert war, nur
+hinter dem Settings-Modal versteckt, das wiederum hinter dem Sperrbildschirm
+lag.
+
+Loesung: Neuer Bildschirm trip-picker-screen, der sich zeigt, wenn (a) es
+sich um den allerersten Start auf diesem Geraet handelt (kein
+'active_trip_id' in localStorage) UND (b) das ist unabhaengig davon, ob nur
+eine oder mehrere Reisen existieren - auch bei nur einer Reise wird bewusst
+gewaehlt statt automatisch hineingesprungen, damit "Neue Reise anlegen"
+nicht uebersehen wird. Zeigt eine Liste aller Reisen (mit Schloss-Icon bei
+passwortgeschuetzten) sowie einen Button "Neue Reise anlegen". Erst nach
+Auswahl einer bestehenden Reise greift die bisherige Passwortlogik.
+
+Wiederkehrende Nutzer (die schon einmal eine Reise gewaehlt hatten) sehen
+den Auswahlbildschirm NICHT erneut - die App startet fuer sie weiterhin
+direkt wie gewohnt in ihrer zuletzt aktiven Reise. Ueber "Andere Reise
+auswaehlen" auf dem Sperrbildschirm bleibt der Auswahlbildschirm jederzeit
+erreichbar (vorher fuehrte dieser Button ins Settings-Modal).
+
+=== FIX: Hartcodierter "Skandinavien"-Titel entfernt ===
+
+"Skandinavien Reiseplaner" war kein App-weiter Titel, sondern lediglich der
+gespeicherte Name der einen migrierten Bestandsreise (aus
+migrateLegacyData()) - blieb aber zusaetzlich hartcodiert an drei Stellen
+stehen, die nicht dynamisch ueberschrieben werden:
+  - <title> in index.html
+  - manifest.json (name, description) - wirkt sich auf PWA-Installationen
+    ("Zum Startbildschirm hinzufuegen") und Browser-Tab-Titel vor dem
+    ersten Laden aus
+  - Neuer trip-picker-screen (siehe oben) zeigt jetzt "Reiseplaner &
+    Tagebuch" statt eines Reisenamens, da er VOR der Reisewahl erscheint
+
+Die einzelnen Reisen selbst behalten natuerlich ihre eigenen, frei
+vergebenen Namen (z.B. "Skandinavien 2026") - das war korrekt und bleibt
+unveraendert, nur der App-weite Rahmen ist jetzt generisch.
+
+=== GEAENDERTE DATEIEN ===
+
+- index.html          (neuer trip-picker-screen, <title> generisch)
+- manifest.json        (name/description generisch statt Skandinavien-spezifisch)
+- js/firebase.js       (initSystem(): Weiche vor automatischer Trip-Zuweisung;
+                        createTrip(): schliesst Picker mit falls offen)
+- js/settings.js       (neu: showTripPicker(), renderTripPickerList(),
+                        window.pickTrip(), window.showTripPicker();
+                        "Andere Reise auswaehlen" zeigt jetzt den Picker
+                        statt Settings zu oeffnen)
+
+=== QA CHECKLIST ===
+
+[x] node --check auf allen 19 JS-Dateien - fehlerfrei
+[x] HTML div-Tag-Balance geprueft (122 offen / 122 geschlossen) - balanciert
+[x] Zirkulaerer Import firebase.js<->settings.js vermieden (window-Bruecke
+    window.__selectTripAfterPicker, gleiches Muster wie an anderen Stellen
+    im bestehenden Code)
+[x] Bestandsverhalten fuer wiederkehrende Nutzer (localStorage-Flag
+    gesetzt) per Code-Lesung verifiziert unveraendert
+
+=== MANUELLE TESTSCHRITTE (nach Deploy) ===
+
+1. Browser-Storage fuer die Domain komplett leeren (oder privates/Inkognito-
+   Fenster nutzen) -> App oeffnen -> es sollte JETZT der neue
+   Reise-Auswahlbildschirm erscheinen ("Reiseplaner & Tagebuch" /
+   "Welche Reise moechtest du oeffnen?"), NICHT direkt die Passwortabfrage
+2. Bestehende Reise antippen -> Passwortabfrage erscheint wie gewohnt (falls
+   die Reise geschuetzt ist) bzw. App oeffnet sich direkt (falls ungeschuetzt)
+3. "Neue Reise anlegen" vom Auswahlbildschirm aus antippen -> Dialog oeffnet
+   sich, neue Reise anlegen -> App sollte danach direkt in der neuen Reise
+   landen (kein Sprung zurueck zum Sperrbildschirm der alten Reise)
+4. App schliessen und neu oeffnen (gleiches Geraet/Browser) -> Auswahlbild-
+   schirm sollte NICHT mehr erscheinen, App startet direkt in der zuletzt
+   gewaehlten Reise (ggf. mit deren Passwortabfrage)
+5. Auf dem Sperrbildschirm "Andere Reise auswaehlen" antippen -> sollte
+   jetzt den Auswahlbildschirm zeigen (vorher: Settings-Modal)
+6. Browser-Tab-Titel und (falls als PWA installiert) Home-Bildschirm-Name
+   pruefen -> sollte nirgends mehr "Skandinavien" stehen
+
+=== WEITERHIN OFFEN ===
+
+BUG-1  CORS-Fehler - unveraendert offen
+F6-F8  Sprint 2 Rest (Marker-Schwellenwert, Settings-Tabs, KI-Trigger-Doku)
+F9-F11 Sprint 3

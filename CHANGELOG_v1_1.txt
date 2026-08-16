@@ -1,0 +1,86 @@
+Version: v1_1 (vollstaendiges Deploy-Paket)
+Release Date: 15.08.2026
+App Version: 5.4 Sprint 1 - VOLLSTAENDIG
+Status: Sprint 1 komplett, bisher noch nie live deployt
+
+=== BEHOBENE BUGS ===
+
+BUG-2: Gemini API Quota Exceeded (429) - Retry-Logik
+  Neue zentrale Datei js/gemini.js: callGemini() mit automatischem
+  Retry bei HTTP 429 (Quota) und 503 (Overloaded)
+  Exponential Backoff: 1s -> 2s -> 4s, max. 3 Versuche
+  Betrifft alle 6 KI-Aufrufstellen im Projekt (siehe unten) - vollstaendig
+  auf callGemini() umgestellt und verifiziert
+
+BUG-3: Kryptische Netlify/API-Fehlermeldungen
+  Neue Funktion getGeminiErrorMessage() uebersetzt technische Fehler
+  (HTTP-Codes, "Failed to fetch") in kurze, verstaendliche deutsche
+  Meldungen. Technische Details bleiben in der Browser-Konsole,
+  NICHT mehr im User-Interface.
+
+=== NEUE FEATURES ===
+
+F1: Sticky Header Fix
+  Datum/Wetter-Feld im Stations-Side-Panel scrollt jetzt mit dem
+  restlichen Inhalt statt fixiert stehen zu bleiben.
+
+F2: Kompakte Button-Layouts
+  Speichern/Zuruecksetzen als Icon-only Buttons (28x28px), inline in
+  der Datumszeile statt eigener Zeile darunter.
+
+F3: KI-Vorschlag UI Redesign
+  Grosse blaue "KI-Vorschlag"-Box entfernt, ersetzt durch dezente
+  Inline-Labels ("KI-Ortsbeschreibung", "KI-Empfehlungen zu Aktivitaeten").
+
+=== GEAENDERTE DATEIEN (verifiziert, alle in diesem Paket) ===
+
+- js/gemini.js          (NEU - zentraler Gemini-Client mit Retry)
+- js/duration.js         (BUG-2/3 Fix + F2 Icon-Buttons)
+- js/poi-suggestions.js  (BUG-2/3 Fix)
+- js/segments.js         (BUG-2/3 Fix)
+- js/place-links.js      (BUG-2/3 Fix)
+- js/stations.js         (BUG-2/3 Fix - Haupt-Bug aus dem CEO-Screenshot)
+- js/diary.js            (BUG-2/3 Fix, 2 Stellen: Blog-Generierung + Highlights)
+- index.html             (F1 + F3 UI-Aenderungen)
+
+=== UNVERAENDERTE DATEIEN (aus Basis-ZIP reiseplaner-deploy-10, unangetastet) ===
+
+js/firebase.js, js/geo.js, js/main.js, js/map.js, js/media.js,
+js/pois.js, js/routing.js, js/settings.js, js/state.js, js/utils.js,
+js/weather.js, manifest.json, sw.js, favicon.ico, icons/*
+
+=== BREAKING CHANGES ===
+
+Keine. Alle Aenderungen sind rueckwaertskompatibel.
+
+=== QA CHECKLIST (in diesem Paket verifiziert) ===
+
+[x] node --check auf allen 18 JS-Dateien - fehlerfrei
+[x] Alle 6 Gemini-Aufrufstellen importieren gemini.js - verifiziert per grep
+[x] Nur noch 1 Vorkommen von generativelanguage.googleapis.com im gesamten
+    js/-Ordner (in gemini.js selbst) - keine verwaisten Alt-Aufrufe
+[x] index.html Byte-fuer-Byte identisch mit Google-Drive-Original verifiziert
+[x] Alle Sprint-1-Dateien Byte-fuer-Byte gegen Google-Drive-Original verifiziert
+[x] HTML enthaelt F1-Marker (Sticky-Header-Fix) und F3-Marker (KI-Label-Redesign)
+
+=== DEPLOYMENT NOTES ===
+
+1. ZIP entpacken
+2. Kompletten Ordnerinhalt auf Netlify hochladen (Drag & Drop Deploy)
+3. Live-Test auf https://sweet-longma-d0decb.netlify.app
+   - Station hinzufuegen -> KI-Anreicherung beobachten
+   - Side-Panel oeffnen, scrollen -> Datum/Wetter sollte mitscrollen (F1)
+   - Speichern/Zuruecksetzen-Icons bei manuellem Datum pruefen (F2)
+   - KI-Beschreibung/Aktivitaeten-Labels statt blauer Box pruefen (F3)
+   - Bei Gelegenheit: mehrere Stationen kurz hintereinander anlegen,
+     um Retry-Logik unter Last zu sehen (Konsole: "Gemini 429 - Retry 1/3")
+4. Browser-Cache leeren falls noetig (Hard Reload)
+
+=== WEITERHIN OFFEN (nicht Teil dieses Pakets) ===
+
+BUG-1  CORS-Fehler (Fotos laden nicht von Firebase Storage)
+       Erfordert gcloud-Kommandos in Google Cloud Shell (Desktop-Zugriff
+       noetig). Unabhaengig vom Sprint-1-Code.
+
+F4-F11 Sprint 2 und 3 Features (Admin Eye/Pencil Toggle, Settings-Tabs,
+       Route Bearbeiten, Executive Summary, Deployment-Doku)

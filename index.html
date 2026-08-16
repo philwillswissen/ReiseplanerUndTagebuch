@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Skandinavien Reiseplaner</title>
+    <title>Reiseplaner & Tagebuch</title>
 
     <!-- PWA: Manifest & Icons -->
     <link rel="manifest" href="/manifest.json">
@@ -569,6 +569,19 @@
         </div>
     </div>
 
+    <!-- REISE-AUSWAHL (zeigt sich vor allem anderen, wenn noch keine aktive Reise gewählt ist) -->
+    <div id="trip-picker-screen" class="fixed inset-0 bg-indigo-950 z-[5100] hidden flex-col items-center justify-center p-6 text-center">
+        <i class="fa-solid fa-route text-blue-400 text-4xl mb-4"></i>
+        <h2 class="text-white text-xl font-bold mb-1">Reiseplaner &amp; Tagebuch</h2>
+        <p class="text-indigo-300 text-xs mb-6">Welche Reise möchtest du öffnen?</p>
+        <div class="w-full max-w-xs">
+            <div id="trip-picker-list" class="space-y-2 max-h-[45vh] overflow-y-auto"></div>
+            <button onclick="window.openNewTripModal()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded font-bold text-sm flex items-center justify-center gap-2">
+                <i class="fa-solid fa-plus"></i> Neue Reise anlegen
+            </button>
+        </div>
+    </div>
+
     <!-- SPERRBILDSCHIRM -->
     <div id="lock-screen" class="fixed inset-0 bg-indigo-950 z-[5000] hidden flex-col items-center justify-center p-6 text-center">
         <i class="fa-solid fa-route text-blue-400 text-4xl mb-4"></i>
@@ -579,7 +592,7 @@
                    class="w-full border border-indigo-700 bg-indigo-900/60 text-white rounded px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 placeholder-indigo-400">
             <div id="lock-error" class="hidden text-red-400 text-xs mt-2">Passwort nicht korrekt.</div>
             <button onclick="window.submitLockPassword()" class="w-full mt-3 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded font-bold text-sm">Öffnen</button>
-            <button onclick="window.openSettings()" class="w-full mt-2 text-indigo-300 hover:text-white text-[11px] py-1.5">Andere Reise auswählen</button>
+            <button onclick="window.showTripPicker()" class="w-full mt-2 text-indigo-300 hover:text-white text-[11px] py-1.5">Andere Reise auswählen</button>
         </div>
     </div>
 

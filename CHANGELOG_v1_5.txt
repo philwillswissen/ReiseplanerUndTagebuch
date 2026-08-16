@@ -1,0 +1,93 @@
+Version: v1_5
+Release Date: 15.08.2026
+App Version: 5.5 Sprint 2 (Onboarding erweitert + Wetter-Archiv-Fix)
+Basis: reiseplaner-v1_4.zip (Onboarding-Grundversion)
+
+=== FEATURE: Onboarding erweitert ===
+
+Auf CEO-Wunsch von 6 auf 9 Slides erweitert. Neu hinzugekommen:
+
+  - "Die Route zwischen Stationen": erklaert, dass ein Tipp auf die
+    Verbindungslinie zwischen zwei Stationen Fahrzeit/Verkehrsmittel/
+    Maut-/Faehrhinweise zeigt (bestehendes Feature aus segments.js,
+    war im Onboarding bisher nicht erwaehnt)
+  - "Sehenswuerdigkeiten entlang der Strecke": erklaert die automatischen
+    KI-Vorschlaege fuer POIs entlang der Route (poi-suggestions.js)
+  - "Von der KI unterstuetzt": uebergreifende Erklaerung, dass
+    Beschreibungen/Aktivitaeten/Tagebuch-Eintraege per KI aus Notizen und
+    Fotos erstellt werden koennen und frei nachbearbeitbar bleiben
+  - Wetter-Slide ergaenzt um Hinweis auf das neue Prognose-Archiv (siehe
+    unten)
+
+Slide-Reihenfolge jetzt: Willkommen -> Karte & Stationen -> Fotos auf der
+Karte -> Datum & Wetter -> Ebenen ein-/ausblenden -> Route zwischen
+Stationen -> Sehenswuerdigkeiten -> KI-Unterstuetzung -> Tagebuch & Galerie
+
+=== FEATURE/FIX: Wetter-Prognose-Archiv ===
+
+Ausgangslage (von CEO gemeldet): Vergangene Wettertage zeigten "Keine
+Vorhersage verfuegbar" - fachlich korrekt (Open-Meteo liefert grundsaetzlich
+keine Vorhersage fuer die Vergangenheit), aber unerwuenscht: die letzte
+Prognose, die tatsaechlich fuer den jeweiligen Tag abgerufen wurde, ging
+beim naechsten 24h-Refresh ersatzlos verloren.
+
+Loesung: Neues Datenfeld station.weatherArchive (Datum -> Wettereintrag).
+Bevor der 24h-Refresh den Live-Cache ueberschreibt, werden alle Tage, die
+zu dem Zeitpunkt bereits in der Vergangenheit liegen, mit ihrem letzten
+bekannten Stand ins Archiv uebernommen. Live-Anzeige und Karten-Marker
+greifen jetzt zuerst auf den Live-Cache zu, bei vergangenen Tagen zusaetzlich
+auf das Archiv - so bleibt "wie war das Wetter laut letzter Prognose"
+dauerhaft sichtbar, auch wenn man die Reise Jahre spaeter nochmal ansieht.
+
+Archivierte Tage sind optisch dezent gekennzeichnet (gestrichelter Rahmen,
+etwas transparent) und im Tooltip als "letzte bekannte Prognose" markiert -
+so ist klar erkennbar, dass es sich nicht um eine Live-Vorhersage handelt.
+
+Wichtig: Das ist weiterhin eine VORHERSAGE, keine Nachtraeglich ermittelte
+Ist-Wetterlage - Open-Meteo liefert keine historischen Beobachtungsdaten
+in diesem Endpunkt. Der Archiv-Mechanismus friert lediglich die letzte
+verfuegbare Prognose ein, bevor sie durch den Refresh verdraengt wird.
+
+=== GEAENDERTE DATEIEN ===
+
+- js/weather.js     (archivePastDays(), findDayEntry() erweitert,
+                      getMarkerWeatherBadge() und renderWeatherStrip()
+                      nutzen jetzt das Archiv als Fallback)
+- js/onboarding.js  (3 neue Slides, Wetter-Slide-Text ergaenzt)
+- index.html         (CSS fuer .weather-day-archived)
+
+=== QA CHECKLIST ===
+
+[x] node --check auf allen 19 JS-Dateien - fehlerfrei
+[x] HTML Tag-Balance geprueft - balanciert
+[x] Onboarding zeigt 9 Slides (Zaehlung im Code verifiziert, Text "9
+    Schritte" im ersten Slide passt dazu)
+[x] weatherArchive wird nur beim reguesten Refresh befuellt (nicht bei
+    jedem renderWeatherStrip-Aufruf), verifiziert per Code-Lesung
+
+=== MANUELLE TESTSCHRITTE (nach Deploy) ===
+
+Onboarding:
+1. Rundgang durchklicken - sollte jetzt 9 statt 6 Kaertchen zeigen
+2. Neue Slides (Route zwischen Stationen, Sehenswuerdigkeiten, KI-
+   Unterstuetzung) auf verstaendliche Formulierung pruefen
+
+Wetter-Archiv (braucht etwas Vorlauf zum Testen):
+1. Bei einer Station mit Aufenthalt in der Vergangenheit (z.B. bereits
+   besuchte Stationen mit Fotos) pruefen, ob im Wetter-Streifen dort ein
+   gestricheltes Kaestchen mit Temperatur/Icon erscheint statt "Keine
+   Vorhersage verfuegbar"
+2. Falls eine Station noch NIE eine Live-Vorhersage hatte (z.B. gerade
+   erst angelegt, Aufenthalt liegt aber schon in der Vergangenheit) wird
+   dort weiterhin "Keine Vorhersage verfuegbar" stehen - das Archiv kann
+   nur Daten zeigen, die zu einem Zeitpunkt tatsaechlich abgerufen wurden,
+   bevor der Tag in die Vergangenheit rutschte
+3. Langzeittest (eigentlicher Sinn des Features): in ein paar Wochen
+   erneut pruefen, ob fuer inzwischen vergangene Reisetage weiterhin eine
+   Prognose sichtbar ist
+
+=== WEITERHIN OFFEN ===
+
+BUG-1  CORS-Fehler - unveraendert offen
+F6-F8  Sprint 2 Rest (Marker-Schwellenwert, Settings-Tabs, KI-Trigger-Doku)
+F9-F11 Sprint 3

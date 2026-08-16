@@ -1,0 +1,71 @@
+Version: v1_3
+Release Date: 15.08.2026
+App Version: 5.5 Sprint 2 (Teil 1: F4 + F5) - Fix nach CEO-Feedback
+Basis: reiseplaner-v1_1-complete.zip (Sprint 1, vollstaendig)
+
+=== FIX NACH CEO-FEEDBACK (Screenshot) ===
+
+Der urspruengliche F4-Button hatte drei Probleme:
+1. Zu gross - hatte Text-Label ("Bearbeiten"), sollte icon-only sein wie
+   das Zahnrad daneben
+2. Icon-Logik verkehrt herum - zeigte das AKTUELLE Icon statt das ZIEL-Icon
+3. Schaltete beim Klick nicht sichtbar um
+
+Fix:
+- Button jetzt icon-only, exakt gleiche Groesse/Klassen wie der
+  Zahnrad-Settings-Button daneben (px-2.5 py-1.5, kein Text)
+- Icon zeigt jetzt das ZIEL des Klicks: im Bearbeiten-Modus sieht man das
+  Auge ("klick fuer Vorschau"), im Vorschau-Modus sieht man den Stift
+  ("klick fuer zurueck zum Bearbeiten")
+- Tote Text-Label-Logik (btn-preview-toggle-label) komplett entfernt,
+  die vermutlich zur Nicht-Reaktion beigetragen hat (Element-Referenz
+  ins Leere, dazu Layout-Verschiebung durch variable Textlaenge, die den
+  Klick-Bereich neben den Button verschoben haben koennte)
+
+=== NEUE FEATURES (unveraendert zu v1_3 initial) ===
+
+F4: Admin Ansicht/Bearbeiten-Umschalter
+    Icon-only Button im Header, nur fuer eingeloggte Admins sichtbar.
+    Wechselt zwischen normaler Bearbeiten-Ansicht und der Ansicht, die
+    normale Betrachter sehen - ohne Aus-/Wieder-Einloggen.
+
+    Technisch: CSS-Klasse .preview-mode auf body-root, blendet alle
+    .admin-only / .admin-only-flex Elemente aus (ueberstimmt .is-admin
+    per !important). Der Umschalter-Button bleibt dabei bewusst sichtbar,
+    sonst gaebe es keinen Weg zurueck. Logout beendet die Vorschau
+    automatisch mit.
+
+F5: "Route Bearbeiten"-Button
+    "+ Station"-Button umbenannt und neben den Reisetitel im Header
+    verschoben (statt im rechten Button-Cluster).
+
+=== GEAENDERTE DATEIEN ===
+
+- index.html       (F4 CSS + Button neu, F5 Button verschoben/umbenannt)
+- js/settings.js    (F4: setPreviewMode(), togglePreviewMode())
+- js/state.js       (F4: neues Feld S.previewMode)
+
+=== QA CHECKLIST ===
+
+[x] node --check auf allen 18 JS-Dateien - fehlerfrei
+[x] HTML Tag-Balance geprueft (div/button/header) - balanciert
+[x] Keine toten DOM-Referenzen mehr (btn-preview-toggle-label entfernt)
+[x] Button-Klassen 1:1 mit Zahnrad-Button abgeglichen (gleiche Groesse)
+
+=== MANUELLE TESTSCHRITTE (nach Deploy - bitte diesmal genau pruefen) ===
+
+1. Als Admin einloggen -> Auge-Icon erscheint rechts neben Tagebuch-Button,
+   vor dem Zahnrad, gleiche Groesse wie das Zahnrad
+2. Klick auf das Auge -> Bearbeiten-Elemente verschwinden (Fotos, Route
+   Bearbeiten, Loeschen-Buttons etc.), Icon wechselt zum Stift
+3. Klick auf den Stift -> zurueck im Bearbeiten-Modus, Icon wechselt zum Auge
+4. Falls es weiterhin nicht reagiert: bitte Browser-Konsole (F12 am
+   Desktop oder Remote-Debugging am Handy) pruefen, ob beim Klick ein
+   JS-Fehler auftaucht - das wuerde auf ein Problem in einer anderen
+   Datei hindeuten, das erst durch diesen Aufruf sichtbar wird
+
+=== WEITERHIN OFFEN ===
+
+BUG-1  CORS-Fehler - unveraendert offen, unabhaengig von diesem Paket
+F6-F8  Sprint 2 Teil 2
+F9-F11 Sprint 3
